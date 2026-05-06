@@ -10,10 +10,6 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    public UserEntity findByRut(String rut);
-    List<UserEntity> findByEmail(String email);
+    UserEntity findByEmail(String email);
 
-    //ward de codigo - borrar luego
-    @Query(value = "SELECT * FROM users WHERE users.rut = :rut", nativeQuery = true)
-    UserEntity findByRutNativeQuery(@Param("rut") String rut);
 }
