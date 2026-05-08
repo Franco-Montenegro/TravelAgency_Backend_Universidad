@@ -1,13 +1,20 @@
 package mingeso.first.travelAgencyBackend.services;
 
 import mingeso.first.travelAgencyBackend.entities.UserEntity;
+import mingeso.first.travelAgencyBackend.enums.AccountStatus;
 import mingeso.first.travelAgencyBackend.repositories.UserRepository;
+
+import mingeso.first.travelAgencyBackend.exceptions.BadRequestException;
+
+import static mingeso.first.travelAgencyBackend.utils.ValidationUtils.isValidEmail;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+
 
 @Service
 public class UserService {
@@ -18,9 +25,19 @@ public class UserService {
         return (ArrayList<UserEntity>) userRepository.findAll();
     }
 
-    public UserEntity saveUser(UserEntity user){
+    public UserEntity registerUser(UserEntity user) {
+        if (user.getName() == null || user.getEmail() == null || user.getPassword() == null) {
+            throw new BadRequestException("Missing required fields");
+        }
+        if (!isValidEmail(user.getEmail())) {
+            throw new BadRequestException("Invalid email format");
+        }
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new BadRequestException("Email already in use");
+        }
+        user.setStateAccount(AccountStatus.valueOf("ACTIVE"));
+
         return userRepository.save(user);
     }
-
 
 }
