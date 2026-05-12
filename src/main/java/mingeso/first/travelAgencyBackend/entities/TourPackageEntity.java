@@ -36,17 +36,16 @@ public class TourPackageEntity {
 
     @Column(nullable = false)
     private LocalDate endDate;
-    @Column(nullable = false)
+
     private Integer duration;
 
     @Column(nullable = false)
     private BigDecimal price;
 
     @Column(nullable = false)
-    private int totalSlots;
+    private Integer totalSlots;
 
-    @Column(nullable = false)
-    private int availableSlots;
+    private Integer availableSlots;
 
     private String servicesIncluded;
     private String conditions;

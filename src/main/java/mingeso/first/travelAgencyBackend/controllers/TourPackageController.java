@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -35,5 +37,22 @@ public class TourPackageController {
     public ResponseEntity<Void> deletePackage(@PathVariable Long id) {
         packageService.deletePackageLogical(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<TourPackageEntity>> searchPackages(
+            @RequestParam(required = false) String destination,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+
+        List<TourPackageEntity> results = packageService.searchPackages(destination, minPrice, maxPrice, startDate, endDate);
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<TourPackageEntity>> getByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(packageService.getPackagesByCategory(category));
     }
 }

@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,5 +95,62 @@ class TourPackageServiceTest {
         verify(packageRepository, times(1)).save(validPackage);
 
         verify(packageRepository, never()).delete(any());
+    }
+
+    @Test
+    void whenCreatePackage_thenCalculateDurationAndSlotsCorrect() {
+        // Given
+        validPackage.setStartDate(LocalDate.of(2026, 10, 1));
+        validPackage.setEndDate(LocalDate.of(2026, 10, 10)); // 9 días de diferencia
+        validPackage.setTotalSlots(25);
+        when(packageRepository.save(any(TourPackageEntity.class))).thenReturn(validPackage);
+
+        // When
+        TourPackageEntity saved = packageService.createPackage(validPackage);
+
+        // Then
+        assertThat(saved.getDuration()).isEqualTo(9);
+        assertThat(saved.getAvailableSlots()).isEqualTo(25);
+    }
+
+    @Test
+    void whenSearchPackages_thenReturnList() {
+        // Given
+        List<TourPackageEntity> packages = List.of(validPackage);
+        when(packageRepository.findPackagesByFilters(anyString(), any(), any(), any(), any()))
+                .thenReturn(packages);
+
+        // When
+        List<TourPackageEntity> result = packageService.searchPackages("Easter", null, null, null, null);
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getDestination()).contains("Easter Island");
+    }
+
+    @Test
+    void whenGetByCategory_thenReturnOnlyAvailable() {
+        // Given
+        List<TourPackageEntity> packages = List.of(validPackage);
+        when(packageRepository.findByCategoryAndStatus("ADVENTURE", PackageStatus.AVAILABLE))
+                .thenReturn(packages);
+
+        // When
+        List<TourPackageEntity> result = packageService.getPackagesByCategory("ADVENTURE");
+
+        // Then
+        assertThat(result).isNotEmpty();
+        verify(packageRepository).findByCategoryAndStatus("ADVENTURE", PackageStatus.AVAILABLE);
+    }
+
+    @Test
+    void whenDeleteNonExistentPackage_thenThrowException() {
+        // Given
+        when(packageRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> packageService.deletePackageLogical(99L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Package not found");
     }
 }
