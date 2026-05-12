@@ -38,6 +38,9 @@ public class BookingService {
         TourPackageEntity tourPackage = packageRepository.findById(booking.getTourPackage().getId())
                 .orElseThrow(() -> new BadRequestException("Package not found"));
 
+        UserEntity user = userRepository.findById(booking.getUser().getId())
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
         if (booking.getPassengersCount() <= 0) {
             throw new BadRequestException("Passengers count must be greater than zero");
         }
@@ -54,6 +57,8 @@ public class BookingService {
         BigDecimal totalDiscount = rawTotal.multiply(discountPercentage).setScale(2, RoundingMode.HALF_UP);
         BigDecimal finalAmount = rawTotal.subtract(totalDiscount).setScale(2, RoundingMode.HALF_UP);
 
+        booking.setUser(user);
+        booking.setTourPackage(tourPackage);
         booking.setBasePrice(basePrice);
         booking.setTotalAmount(finalAmount);
         booking.setTotalDiscount(totalDiscount);
