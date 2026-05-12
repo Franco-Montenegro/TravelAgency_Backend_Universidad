@@ -5,6 +5,7 @@ import mingeso.first.travelAgencyBackend.entities.UserEntity;
 import mingeso.first.travelAgencyBackend.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +17,16 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
 
     @Query("SELECT COUNT(b) FROM BookingEntity b WHERE b.user = :user AND b.stateBooking = :status")
     long countByUserAndStateBooking(@Param("user") UserEntity user, @Param("status") BookingStatus status);
+
+    long countByStateBooking(BookingStatus status);
+
+    @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM BookingEntity b WHERE b.stateBooking = 'CONFIRMED'")
+    Long calculateTotalRevenue();
+
+    @Query("SELECT b.tourPackage.name FROM BookingEntity b " +
+            "GROUP BY b.tourPackage.name " +
+            "ORDER BY COUNT(b) DESC")
+    List<String> findTopSellingPackages(Pageable pageable);
 
     List<BookingEntity> findByUser(UserEntity user);
     List<BookingEntity> findByUserId(Long userId);
