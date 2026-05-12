@@ -10,9 +10,8 @@ import mingeso.first.travelAgencyBackend.enums.PackageStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-
 @Entity
-@Table(name = "tourPackages")
+@Table(name = "tour_packages")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,32 +28,34 @@ public class TourPackageEntity {
     @Column(nullable = false)
     private String destination;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String description;
 
     @Column(nullable = false)
-    private LocalDate departureDate;
+    private LocalDate startDate;
 
     @Column(nullable = false)
-    private LocalDate returnDate;
+    private LocalDate endDate;
+    @Column(nullable = false)
+    private Integer duration;
 
     @Column(nullable = false)
-    private BigDecimal amount;
+    private BigDecimal price;
 
     @Column(nullable = false)
-    private int stock;
+    private int totalSlots;
 
     @Column(nullable = false)
-    private int availableStock;
+    private int availableSlots;
 
-    private String service;
+    private String servicesIncluded;
     private String conditions;
-    private String restriction;
-    private String typeTrip;
-    private String tempTrip;
+    private String restrictions;
+    private String tripType;
+    private String season;
     private String category;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PackageStatus statePackage;
+    private PackageStatus status;
 }
