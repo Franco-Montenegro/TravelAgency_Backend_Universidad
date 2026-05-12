@@ -53,5 +53,4 @@ public class UserService {
         user.setStateAccount(AccountStatus.INACTIVE);
         userRepository.save(user);
     }
-
 }

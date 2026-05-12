@@ -22,6 +22,9 @@ public class UserEntity {
     private Long id;
 
     @Column(unique = true, nullable = false)
+    private String keycloakId;
+
+    @Column(unique = true, nullable = false)
     private String rut;
 
     @Column(unique = true, nullable = false)
