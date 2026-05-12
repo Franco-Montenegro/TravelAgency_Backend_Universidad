@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 @Service
 public class BookingService {
@@ -30,6 +31,18 @@ public class BookingService {
         this.bookingRepository = bookingRepository;
         this.packageRepository = packageRepository;
         this.userRepository = userRepository;
+    }
+    public BookingEntity getBookingById(Long id) {
+        return bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
+    }
+
+    public List<BookingEntity> getBookingsByUserId(Long userId) {
+        List<BookingEntity> bookings = bookingRepository.findByUserId(userId);
+        if (bookings.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return bookings;
     }
 
     @Transactional

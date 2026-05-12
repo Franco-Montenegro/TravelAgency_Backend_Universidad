@@ -25,4 +25,16 @@ public class BookingController {
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<BookingEntity>> getUserHistory(@PathVariable Long userId) {
+        List<BookingEntity> history = bookingService.getBookingsByUserId(userId);
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BookingEntity> getBookingDetail(@PathVariable Long id) {
+        BookingEntity booking = bookingService.getBookingById(id);
+        return ResponseEntity.ok(booking);
+    }
+
 }

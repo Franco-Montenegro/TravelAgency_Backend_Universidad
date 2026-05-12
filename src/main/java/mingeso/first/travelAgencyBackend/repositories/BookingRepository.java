@@ -18,6 +18,7 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
     long countByUserAndStateBooking(@Param("user") UserEntity user, @Param("status") BookingStatus status);
 
     List<BookingEntity> findByUser(UserEntity user);
+    List<BookingEntity> findByUserId(Long userId);
 
     @Query("SELECT b FROM BookingEntity b WHERE b.bookingDate BETWEEN :startDate AND :endDate")
     List<BookingEntity> findAllByBookingDateBetween(

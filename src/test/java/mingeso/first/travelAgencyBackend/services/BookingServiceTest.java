@@ -17,6 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,5 +107,64 @@ class BookingServiceTest {
         assertThatThrownBy(() -> bookingService.createBooking(mockBooking))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Not enough available slots");
+    }
+    @Test
+    @DisplayName("Debe retornar lista de reservas cuando el usuario tiene historial")
+    void shouldReturnBookingsWhenUserHasHistory() {
+        // Given
+        Long userId = 1L;
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
+        BookingEntity booking1 = new BookingEntity();
+        booking1.setId(101L);
+        booking1.setUser(user);
+
+        BookingEntity booking2 = new BookingEntity();
+        booking2.setId(102L);
+        booking2.setUser(user);
+
+        when(bookingRepository.findByUserId(userId)).thenReturn(Arrays.asList(booking1, booking2));
+
+        // When
+        List<BookingEntity> result = bookingService.getBookingsByUserId(userId);
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getUser().getId()).isEqualTo(userId);
+        verify(bookingRepository, times(1)).findByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("Debe retornar la reserva cuando el ID existe")
+    void shouldReturnBookingWhenIdExists() {
+        // Given
+        Long bookingId = 101L;
+        BookingEntity booking = new BookingEntity();
+        booking.setId(bookingId);
+        booking.setStateBooking(BookingStatus.CONFIRMED);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        // When
+        BookingEntity result = bookingService.getBookingById(bookingId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(bookingId);
+        assertThat(result.getStateBooking()).isEqualTo(BookingStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando la reserva no existe")
+    void shouldThrowExceptionWhenBookingDoesNotExist() {
+        // Given
+        Long bookingId = 999L;
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> bookingService.getBookingById(bookingId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Reserva no encontrada");
     }
 }
