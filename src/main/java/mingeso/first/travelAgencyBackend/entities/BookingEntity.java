@@ -31,7 +31,7 @@ public class BookingEntity {
     private TourPackageEntity tourPackage;
 
     @Column(nullable = false)
-    private int passengersCount;
+    private Integer passengersCount;
 
     @Column(columnDefinition = "TEXT")
     private String preferences;
@@ -47,6 +47,9 @@ public class BookingEntity {
 
     @Column(nullable = false)
     private LocalDate bookingDate;
+
+    @Column(nullable = false)
+    private LocalDate expirationDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
