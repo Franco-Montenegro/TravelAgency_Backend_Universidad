@@ -24,7 +24,7 @@ public class PaymentEntity {
     @Column(nullable = false)
     private LocalDateTime paymentDate;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
     @OneToOne(fetch = FetchType.LAZY)

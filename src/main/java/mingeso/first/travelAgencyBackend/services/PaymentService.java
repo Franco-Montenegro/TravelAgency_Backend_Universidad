@@ -1,12 +1,52 @@
 package mingeso.first.travelAgencyBackend.services;
 
+import mingeso.first.travelAgencyBackend.entities.BookingEntity;
 import mingeso.first.travelAgencyBackend.entities.PaymentEntity;
+import mingeso.first.travelAgencyBackend.enums.BookingStatus;
+import mingeso.first.travelAgencyBackend.exceptions.BadRequestException;
+import mingeso.first.travelAgencyBackend.repositories.BookingRepository;
 import mingeso.first.travelAgencyBackend.repositories.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class PaymentService {
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Transactional
+    public PaymentEntity processPayment(PaymentEntity payment) {
+
+        BookingEntity booking = bookingRepository.findById(payment.getBooking().getId())
+                .orElseThrow(() -> new BadRequestException("Booking not found."));
+
+        if (paymentRepository.existsByBookingId(booking.getId())) {
+            throw new BadRequestException("This booking has already been paid.");
+        }
+
+        if (payment.getAmount().compareTo(booking.getTotalAmount()) != 0) {
+            throw new BadRequestException("The payment amount must match the total booking amount: " + booking.getTotalAmount());
+        }
+
+        if (booking.getStateBooking() == BookingStatus.CANCELLED || booking.getStateBooking() == BookingStatus.EXPIRED) {
+            throw new BadRequestException("Cannot pay for a cancelled or expired booking.");
+        }
+
+        payment.setTransactionId(UUID.randomUUID().toString());
+        payment.setPaymentDate(LocalDateTime.now());
+        payment.setBooking(booking);
+
+        booking.setStateBooking(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        return paymentRepository.save(payment);
+    }
 }
