@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -101,5 +103,64 @@ public class UserServiceTest {
         // Assert
         assertThat(user.getStateAccount()).isEqualTo(AccountStatus.INACTIVE);
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    @DisplayName("Debe retornar una lista de usuarios cuando existen registros")
+    void getUsers_ShouldReturnList() {
+        // GIVEN
+        UserEntity user1 = new UserEntity();
+        user1.setName("Juan");
+        UserEntity user2 = new UserEntity();
+        user2.setName("Maria");
+        when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+
+        // WHEN
+        List<UserEntity> result = userService.getUsers();
+
+        // THEN
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(UserEntity::getName).containsExactly("Juan", "Maria");
+        verify(userRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("Debe actualizar correctamente los datos de un usuario existente")
+    void updateUserDetails_Success() {
+        // GIVEN
+        Long userId = 1L;
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setName("Nombre Antiguo");
+
+        UserEntity newData = new UserEntity();
+        newData.setName("Nombre Nuevo");
+        newData.setPhone("+56912345678");
+        newData.setNationality("Chilena");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        UserEntity result = userService.updateUserDetails(userId, newData);
+
+        // THEN
+        assertThat(result.getName()).isEqualTo("Nombre Nuevo");
+        assertThat(result.getPhone()).isEqualTo("+56912345678");
+        assertThat(result.getNationality()).isEqualTo("Chilena");
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    @DisplayName("Debe lanzar BadRequestException al intentar actualizar un usuario que no existe")
+    void updateUserDetails_UserNotFound() {
+        // GIVEN
+        Long userId = 99L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> userService.updateUserDetails(userId, new UserEntity()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("User not found");
     }
 }

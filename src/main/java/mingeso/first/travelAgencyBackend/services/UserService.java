@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -18,8 +19,8 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
-    public ArrayList<UserEntity> getUsers(){
-        return (ArrayList<UserEntity>) userRepository.findAll();
+    public List<UserEntity> getUsers(){
+        return userRepository.findAll();
     }
 
     public UserEntity registerUser(UserEntity user) {

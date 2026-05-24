@@ -1,6 +1,7 @@
 package mingeso.first.travelAgencyBackend.services;
 
 import mingeso.first.travelAgencyBackend.dto.ReportResponseDTO;
+import mingeso.first.travelAgencyBackend.enums.BookingStatus;
 import mingeso.first.travelAgencyBackend.repositories.BookingRepository;
 import mingeso.first.travelAgencyBackend.repositories.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +35,7 @@ class ReportServiceTest {
     void getAdminDashboardStats_ShouldReturnCorrectStats() {
         // GIVEN
         when(bookingRepository.calculateTotalRevenue()).thenReturn(500000L);
-        when(bookingRepository.countByStatus("CONFIRMED")).thenReturn(10L);
+        when(bookingRepository.countByStateBooking(BookingStatus.CONFIRMED)).thenReturn(10L);
         when(userRepository.count()).thenReturn(5L);
         when(bookingRepository.findTopSellingPackages(any(PageRequest.class)))
                 .thenReturn(List.of("Torres del Paine"));
@@ -55,7 +56,7 @@ class ReportServiceTest {
     void getAdminDashboardStats_EmptyData_ShouldReturnDefaultMessage() {
         // GIVEN
         when(bookingRepository.calculateTotalRevenue()).thenReturn(0L);
-        when(bookingRepository.countByStatus("CONFIRMED")).thenReturn(0L);
+        when(bookingRepository.countByStateBooking(BookingStatus.CONFIRMED)).thenReturn(0L);
         when(userRepository.count()).thenReturn(0L);
         when(bookingRepository.findTopSellingPackages(any(PageRequest.class)))
                 .thenReturn(List.of());
