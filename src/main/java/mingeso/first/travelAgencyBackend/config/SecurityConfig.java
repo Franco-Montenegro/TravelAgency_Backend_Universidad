@@ -10,6 +10,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,12 +26,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Deshabilitamos CSRF porque trabajamos con tokens REST sin estado (Stateless)
+                // Habilitar CORS
+                .cors(cors -> {})
+
+                // Deshabilitar CSRF
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/packages/**").permitAll()
+                        .requestMatchers("/api/v1/packages/**").permitAll()
                         .requestMatchers("/api/v1/reports/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -39,16 +46,52 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(List.of("*"));
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
     private JwtAuthenticationConverter jwtAuthConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Collection<GrantedAuthority> authorities = new ArrayList<>();
-            Map<String, Object> realmAccess = (Map<String, Object>) jwt.getClaims().get("realm_access");
 
-            if (realmAccess != null && realmAccess.get("roles") instanceof List<?>) {
+            Map<String, Object> realmAccess =
+                    (Map<String, Object>) jwt.getClaims().get("realm_access");
+
+            if (realmAccess != null &&
+                    realmAccess.get("roles") instanceof List<?>) {
+
                 List<?> roles = (List<?>) realmAccess.get("roles");
-                roles.forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role)));
+
+                roles.forEach(role ->
+                        authorities.add(
+                                new SimpleGrantedAuthority("ROLE_" + role)
+                        )
+                );
             }
 
             return authorities;
