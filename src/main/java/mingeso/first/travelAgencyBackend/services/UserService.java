@@ -25,7 +25,7 @@ public class UserService {
 
     public UserEntity registerUser(UserEntity user) {
         //
-        if (user.getName() == null || user.getLastName() == null || user.getEmail() == null || user.getPassword() == null) {
+        if (user.getName() == null || user.getLastName() == null || user.getEmail() == null) {
             throw new BadRequestException("Missing required fields");
         }
         if (!isValidEmail(user.getEmail())) {

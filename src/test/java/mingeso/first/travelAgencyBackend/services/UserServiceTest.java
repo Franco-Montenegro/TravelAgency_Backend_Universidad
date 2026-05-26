@@ -38,7 +38,6 @@ public class UserServiceTest {
         user.setName("Juan");
         user.setLastName("Perez");
         user.setEmail("juan.perez@mail.com");
-        user.setPassword("password123");
     }
 
     @Test
