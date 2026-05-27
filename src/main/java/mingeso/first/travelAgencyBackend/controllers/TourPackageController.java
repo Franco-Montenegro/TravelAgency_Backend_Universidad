@@ -55,4 +55,13 @@ public class TourPackageController {
     public ResponseEntity<List<TourPackageEntity>> getByCategory(@PathVariable String category) {
         return ResponseEntity.ok(packageService.getPackagesByCategory(category));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TourPackageEntity> updatePackage(
+            @PathVariable Long id,
+            @RequestBody TourPackageEntity updatedData
+    ) {
+        TourPackageEntity packageUpdated = packageService.updatePackageControlled(id, updatedData);
+        return ResponseEntity.ok(packageUpdated);
+    }
 }

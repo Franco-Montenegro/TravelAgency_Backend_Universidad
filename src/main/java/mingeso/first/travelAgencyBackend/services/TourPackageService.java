@@ -1,9 +1,13 @@
 package mingeso.first.travelAgencyBackend.services;
 
+import jakarta.transaction.Transactional;
 import mingeso.first.travelAgencyBackend.entities.TourPackageEntity;
+import mingeso.first.travelAgencyBackend.enums.BookingStatus;
 import mingeso.first.travelAgencyBackend.enums.PackageStatus;
 import mingeso.first.travelAgencyBackend.repositories.TourPackageRepository;
+import mingeso.first.travelAgencyBackend.repositories.BookingRepository;
 import mingeso.first.travelAgencyBackend.exceptions.BadRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,19 +17,21 @@ import java.util.List;
 @Service
 public class TourPackageService {
 
+
     private final TourPackageRepository packageRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
 
     public TourPackageService(TourPackageRepository packageRepository) {
         this.packageRepository = packageRepository;
     }
 
     public TourPackageEntity createPackage(TourPackageEntity tourPackage) {
-        // Precio mayor que cero
         if (tourPackage.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("The package price must be greater than zero.");
         }
 
-        // Fecha de término posterior al inicio
         if (tourPackage.getEndDate().isBefore(tourPackage.getStartDate()) ||
                 tourPackage.getEndDate().isEqual(tourPackage.getStartDate())) {
             throw new BadRequestException("The end date must be after the start date.");
@@ -36,13 +42,11 @@ public class TourPackageService {
         );
         tourPackage.setDuration(calculatedDuration);
 
-        // Cupos totales mayores que cero
         if (tourPackage.getTotalSlots() <= 0) {
             throw new BadRequestException("Total slots must be greater than zero.");
         }
         tourPackage.setAvailableSlots(tourPackage.getTotalSlots());
 
-        // Seteo de estado inicial por defecto
         if (tourPackage.getStatus() == null) {
             tourPackage.setStatus(PackageStatus.AVAILABLE);
         }
@@ -50,7 +54,6 @@ public class TourPackageService {
         return packageRepository.save(tourPackage);
     }
 
-    // Borrado Lógico
     public void deletePackageLogical(Long id) {
         TourPackageEntity tourPackage = packageRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Package not found"));
@@ -64,7 +67,6 @@ public class TourPackageService {
     }
 
     public List<TourPackageEntity> searchPackages(String destination, BigDecimal minPrice, BigDecimal maxPrice, LocalDate startDate, LocalDate endDate) {
-        // filtros vacíos -> establecer valores por defecto
         String dest = (destination == null) ? "" : destination;
         BigDecimal minP = (minPrice == null) ? BigDecimal.ZERO : minPrice;
         BigDecimal maxP = (maxPrice == null) ? new BigDecimal("999999999") : maxPrice;
@@ -76,5 +78,43 @@ public class TourPackageService {
 
     public List<TourPackageEntity> getPackagesByCategory(String category) {
         return packageRepository.findByCategoryAndStatus(category, PackageStatus.AVAILABLE);
+    }
+
+    @Transactional
+    public TourPackageEntity updatePackageControlled(Long id, TourPackageEntity updatedData) {
+        TourPackageEntity existingPackage = packageRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Package not found: ID: " + id));
+
+        if (updatedData.getPrice() == null || updatedData.getPrice().doubleValue() <= 0) {
+            throw new IllegalArgumentException("Price must be greater than zero");
+        }
+        if (updatedData.getTotalSlots() == null || updatedData.getTotalSlots() <= 0) {
+            throw new IllegalArgumentException("Slots must be greater than zero.");
+        }
+
+        long activeBookingsCount = bookingRepository.countByTourPackageIdAndStateBookingNot(id, BookingStatus.CANCELLED);
+
+        if (activeBookingsCount > 0) {
+            if (!existingPackage.getStartDate().equals(updatedData.getStartDate()) ||
+                    !existingPackage.getEndDate().equals(updatedData.getEndDate())) {
+                throw new IllegalStateException("Cannot modify dates with registered booking.");
+            }
+
+            long reservedSlots = bookingRepository.sumPassengersByTourPackageId(id);
+            if (updatedData.getTotalSlots() < reservedSlots) {
+                throw new IllegalStateException("Total slots cannot be lower than reserved slots (" + reservedSlots + ").");
+            }
+        }
+
+        existingPackage.setName(updatedData.getName()); // 💡 ¡Fundamental!
+        existingPackage.setDescription(updatedData.getDescription()); // 💡 ¡Fundamental!
+        existingPackage.setDestination(updatedData.getDestination());
+        existingPackage.setPrice(updatedData.getPrice());
+        existingPackage.setTotalSlots(updatedData.getTotalSlots());
+        existingPackage.setStartDate(updatedData.getStartDate());
+        existingPackage.setEndDate(updatedData.getEndDate());
+        existingPackage.setStatus(updatedData.getStatus());
+
+        return packageRepository.save(existingPackage);
     }
 }

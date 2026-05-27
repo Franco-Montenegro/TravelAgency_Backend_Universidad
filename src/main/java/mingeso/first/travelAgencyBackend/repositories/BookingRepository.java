@@ -38,4 +38,9 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
     );
 
     List<BookingEntity> findByStateBookingAndExpirationDateBefore(BookingStatus status, LocalDate currentDate);
+    @Query("SELECT COUNT(b) FROM BookingEntity b WHERE b.tourPackage.id = :packageId AND b.stateBooking <> :status")
+    long countByTourPackageIdAndStateBookingNot(@Param("packageId") Long packageId, @Param("status") BookingStatus status);
+
+    @Query("SELECT COALESCE(SUM(b.passengersCount), 0) FROM BookingEntity b WHERE b.tourPackage.id = :packageId AND b.stateBooking <> 'CANCELLED'")
+    long sumPassengersByTourPackageId(@Param("packageId") Long packageId);
 }
