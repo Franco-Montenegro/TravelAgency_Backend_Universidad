@@ -43,4 +43,20 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
 
     @Query("SELECT COALESCE(SUM(b.passengersCount), 0) FROM BookingEntity b WHERE b.tourPackage.id = :packageId AND b.stateBooking <> 'CANCELLED'")
     long sumPassengersByTourPackageId(@Param("packageId") Long packageId);
+
+    @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM BookingEntity b " +
+            "WHERE b.stateBooking = :status " +
+            "AND b.bookingDate BETWEEN :startDate AND :endDate")
+    java.math.BigDecimal calculateRevenueByPeriod(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("status") BookingStatus status
+    );
+
+    @Query("SELECT b.tourPackage.id, b.tourPackage.name, SUM(b.passengersCount) as totalPassengers " +
+            "FROM BookingEntity b " +
+            "WHERE b.stateBooking = :status " +
+            "GROUP BY b.tourPackage.id, b.tourPackage.name " +
+            "ORDER BY totalPassengers DESC")
+    List<Object[]> getPackageSalesRankingDetail(@Param("status") BookingStatus status);
 }

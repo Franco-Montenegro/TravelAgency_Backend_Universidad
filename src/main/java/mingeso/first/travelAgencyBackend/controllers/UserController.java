@@ -4,6 +4,7 @@ import mingeso.first.travelAgencyBackend.entities.UserEntity;
 import mingeso.first.travelAgencyBackend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,10 +22,15 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @PostMapping("/")
-    public ResponseEntity<UserEntity> saveUser(@RequestBody UserEntity user) {
-        UserEntity userNew = userService.registerUser(user);
-        return ResponseEntity.ok(userNew);
+    @PostMapping("/sync")
+    public ResponseEntity<UserEntity> syncUser(JwtAuthenticationToken principal) {
+        String keycloakId = principal.getToken().getSubject();
+        String email = principal.getToken().getClaimAsString("email");
+        String name = principal.getToken().getClaimAsString("given_name");
+        String lastName = principal.getToken().getClaimAsString("family_name");
+
+        UserEntity user = userService.syncUserFromKeycloak(keycloakId, email, name, lastName);
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{id}")

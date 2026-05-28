@@ -28,18 +28,15 @@ public class PaymentService {
         BookingEntity booking = bookingRepository.findById(payment.getBooking().getId())
                 .orElseThrow(() -> new BadRequestException("Booking not found."));
 
-        if (paymentRepository.existsByBookingId(booking.getId())) {
+        if (paymentRepository.existsByBookingId(booking.getId()) || booking.getStateBooking() == BookingStatus.CONFIRMED) {
             throw new BadRequestException("This booking has already been paid.");
-        }
-
-        if (payment.getAmount().compareTo(booking.getTotalAmount()) != 0) {
-            throw new BadRequestException("The payment amount must match the total booking amount: " + booking.getTotalAmount());
         }
 
         if (booking.getStateBooking() == BookingStatus.CANCELLED || booking.getStateBooking() == BookingStatus.EXPIRED) {
             throw new BadRequestException("Cannot pay for a cancelled or expired booking.");
         }
 
+        payment.setAmount(booking.getTotalAmount());
         payment.setTransactionId(UUID.randomUUID().toString());
         payment.setPaymentDate(LocalDateTime.now());
         payment.setBooking(booking);

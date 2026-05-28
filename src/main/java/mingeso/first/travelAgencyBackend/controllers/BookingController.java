@@ -30,6 +30,11 @@ public class BookingController {
         List<BookingEntity> history = bookingService.getBookingsByUserId(userId);
         return ResponseEntity.ok(history);
     }
+    @GetMapping("/user/keycloak/{keycloakId}")
+    public ResponseEntity<List<BookingEntity>> getHistoryByKeycloakId(@PathVariable String keycloakId) {
+        List<BookingEntity> bookings = bookingService.getUserHistoryByKeycloakId(keycloakId);
+        return ResponseEntity.ok(bookings);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<BookingEntity> getBookingDetail(@PathVariable Long id) {

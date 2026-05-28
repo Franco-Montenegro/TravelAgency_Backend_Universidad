@@ -18,6 +18,8 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
 @Service
 public class BookingService {
 
@@ -94,7 +96,7 @@ public class BookingService {
 
         long paidBookings = bookingRepository.countByUserAndStateBooking(user, BookingStatus.CONFIRMED);
         if (paidBookings >= 3) {
-            discount = discount.add(new BigDecimal("0.15")); // 10% + 15% = 25% -> Debería bajar a 20%
+            discount = discount.add(new BigDecimal("0.15"));
         }
 
         if (discount.compareTo(new BigDecimal("0.20")) > 0) {
@@ -102,6 +104,12 @@ public class BookingService {
         }
 
         return discount;
+    }
+
+    public List<BookingEntity> getUserHistoryByKeycloakId(String keycloakId) {
+        UserEntity user = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new BadRequestException("User not found with id: " + keycloakId));
+        return bookingRepository.findByUserId(user.getId());
     }
 
 }

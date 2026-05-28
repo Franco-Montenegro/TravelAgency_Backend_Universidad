@@ -26,16 +26,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Habilitar CORS
                 .cors(cors -> {})
-
-                // Deshabilitar CSRF
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/").permitAll()
                         .requestMatchers("/api/v1/packages/**").permitAll()
-                        .requestMatchers("/api/v1/bookings/**").permitAll()
+                        .requestMatchers("/api/v1/bookings/**").hasAnyRole("CLIENT", "ADMIN")
+                        .requestMatchers("/api/v1/payments/**").hasRole("CLIENT")
                         .requestMatchers("/api/v1/reports/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

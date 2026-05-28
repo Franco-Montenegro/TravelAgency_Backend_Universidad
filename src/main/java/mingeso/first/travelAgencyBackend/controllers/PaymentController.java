@@ -1,8 +1,8 @@
 package mingeso.first.travelAgencyBackend.controllers;
 
 import mingeso.first.travelAgencyBackend.entities.PaymentEntity;
+import mingeso.first.travelAgencyBackend.entities.BookingEntity;
 import mingeso.first.travelAgencyBackend.services.PaymentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,13 +12,22 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 public class PaymentController {
 
-    @Autowired
-    private PaymentService paymentService;
+    private final PaymentService paymentService;
 
-    @PostMapping
-    public ResponseEntity<PaymentEntity> processPayment(@RequestBody PaymentEntity payment) {
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @PostMapping("/booking/{bookingId}")
+    public ResponseEntity<PaymentEntity> processPayment(
+            @PathVariable Long bookingId,
+            @RequestBody PaymentEntity payment) {
+
+        BookingEntity bookingRef = new BookingEntity();
+        bookingRef.setId(bookingId);
+        payment.setBooking(bookingRef);
+
         PaymentEntity processedPayment = paymentService.processPayment(payment);
         return new ResponseEntity<>(processedPayment, HttpStatus.CREATED);
     }
-
 }
