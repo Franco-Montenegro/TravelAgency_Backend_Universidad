@@ -17,16 +17,14 @@ import java.util.List;
 @Service
 public class TourPackageService {
 
-
     private final TourPackageRepository packageRepository;
+    private final BookingRepository bookingRepository;
 
     @Autowired
-    private BookingRepository bookingRepository;
-
-    public TourPackageService(TourPackageRepository packageRepository) {
+    public TourPackageService(TourPackageRepository packageRepository, BookingRepository bookingRepository) {
         this.packageRepository = packageRepository;
+        this.bookingRepository = bookingRepository;
     }
-
     public TourPackageEntity createPackage(TourPackageEntity tourPackage) {
         if (tourPackage.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("The package price must be greater than zero.");

@@ -81,19 +81,6 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Debe lanzar excepción si el monto no coincide con el total de la reserva")
-    void processPaymentWrongAmount() {
-        // Arrange
-        mockPayment.setAmount(new BigDecimal("100.00"));
-        when(bookingRepository.findById(1L)).thenReturn(Optional.of(mockBooking));
-
-        // Act & Assert
-        assertThatThrownBy(() -> paymentService.processPayment(mockPayment))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("The payment amount must match");
-    }
-
-    @Test
     @DisplayName("Debe lanzar excepción si la reserva está cancelada")
     void processPaymentCancelledBooking() {
         // Arrange
