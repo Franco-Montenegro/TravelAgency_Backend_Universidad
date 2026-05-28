@@ -126,6 +126,7 @@
 				</executions>
 			</plugin>
 		</plugins>
+		<finalName>travel-agency-backend</finalName>
 	</build>
 
 </project>
