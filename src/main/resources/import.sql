@@ -1,0 +1,3 @@
+INSERT INTO tour_packages (name, destination, description, start_date, end_date, duration, price, total_slots, available_slots, status) VALUES ('Aventura Extrema en San Pedro', 'San Pedro de Atacama', 'Disfruta del Valle de la Luna y sandboard.', '2026-07-01', '2026-07-08', 7, 450000.00, 20, 20, 'AVAILABLE');
+
+INSERT INTO tour_packages (name, destination, description, start_date, end_date, duration, price, total_slots, available_slots, status) VALUES ('Relajo Total en la Patagonia', 'Torres del Paine', 'Navegación por glaciares y todo incluido.', '2026-08-15', '2026-08-25', 10, 1200000.00, 15, 15, 'AVAILABLE');
